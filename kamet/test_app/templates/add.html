@@ -1,0 +1,25 @@
+{% extends 'admin_base.html' %}
+
+{% block content %}
+  <form method="post">
+    <div class="card" style="background-color: whitesmoke; min-height: 75vh; min-width: 100%;">
+      <div class="card-header d-flex justify-content-between" style="background-color: darkgray;">
+        <h4 class="elem-big">{{ title }} {{testuser}}{{topics}}</h4>
+        <h5 class="elem-small">{{ title }} {{testuser}}{{topics}}</h5>
+      </div>
+
+      <div class="card-body">
+        {% csrf_token %}
+        {% for field in form %}
+          {{ field.label_tag }}
+          {{ field }}
+          <br />
+        {% endfor %}
+      </div>
+    </div>
+    <div class="d-flex justify-content-center">
+      <input type="submit" class="btn btn-success elem-big mt-3" style="width: 200px;" value="ADD" />
+      <input type="submit" class="btn btn-success elem-small mt-3 w-100" value="ADD" />
+    </div>
+  </form>
+{% endblock %}

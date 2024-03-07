@@ -1,0 +1,33 @@
+{% extends 'admin_base.html' %}
+
+{% block content %}
+  <div class="card" style="background-color: whitesmoke; min-height: 75vh; min-width: 100%;">
+    <div class="card-header d-flex justify-content-between" style="background-color: darkgray;">
+      <h4 class="elem-big">{{ title }} {{ testuser }}{{ topics.subject }}</h4>
+      <h5 class="elem-small">{{ title }} {{ testuser }}{{ topics.subject }}</h5>
+    </div>
+
+    <div class="card-body">
+        <ul>
+            {% for object in object_list %}
+            <li>
+               <h6>{{object.question_text}}</h6>
+               <div class="p-1 pt-3 pb-3" style="background-color: lightgray; border-radius: 15px;">
+               <ul>
+                <li>{{object.option_a}}</li>
+                <li>{{object.option_b}}</li>
+                <li>{{object.option_c}}</li>
+                <li>{{object.option_d}}</li>
+               </ul>
+            </div>
+            </li>
+            <br>
+            {% endfor %}
+        </ul>
+    </div>
+  </div>
+  <div class="d-flex mt-3 justify-content-center">
+    <a href="{% url addr pk=topics.id %}" class="btn btn-success elem-big" style="width: 200px;" type="submit">Add</a>
+    <a href="{% url addr pk=topics.id %}" class="btn btn-success elem-small w-100" type="submit">Add</a>
+</div>
+{% endblock %}

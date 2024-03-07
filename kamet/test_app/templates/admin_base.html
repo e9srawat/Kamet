@@ -1,0 +1,140 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin Control Panel</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
+    <!-- MDB -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/7.1.0/mdb.min.css" rel="stylesheet" />
+    <style>
+      @media (max-width: 768px) {
+          .elem-big {
+              display: none;
+          }
+
+          .elem-small-flex {
+              display: flex;
+          }
+
+      }
+
+      @media (min-width: 769px) {
+          .elem-small {
+              display: none;
+          }
+
+          .elem-small-flex {
+              display: none;
+          }
+      }
+  </style>
+  </head>
+  <body>
+    <div class="h-100 w-100" style="background-color: #7952b3;">
+      <nav class="navbar container navbar-dark navbar-expand-lg shadow-0" style="background-color: #7952b3; color: white;">
+        <div class="container-fluid">
+          <a class="navbar-brand" href="{% url 'index' %}">LOGO</a>
+          <button
+      data-mdb-collapse-init
+      class="navbar-toggler"
+      type="button"
+      data-mdb-target="#navbarSupportedContent"
+      aria-controls="navbarSupportedContent"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <i class="fas fa-bars"></i>
+    </button>
+          <div class="collapse navbar-collapse justify-content-end" id="navbarSupportedContent">
+            <ul class="navbar-nav">
+              <li class="nav-item">
+                <a class="nav-link {{ status }}" href="{% url 'topics' %}">Topics</a>
+              </li>
+              <li class="nav-item">
+                <a class="btn btn-danger" href="#">Logout</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+    </div>
+
+    <div class="container mt-4">
+      {% block content %}
+        <div class="card p-5 mb-4">
+          <h1>{{ title }}</h1>
+          <div class="table-responsive">
+            <table class="{{table}}">
+              <thead>
+                <tr>
+                  {% for head in header %}
+                    <th scope="col" class="{{ head.1 }}">{{ head.0 }}</th>
+                  {% endfor %}
+                </tr>
+              </thead>
+              <tbody>
+                {% for object in object_list %}
+                  <tr>
+                    <td>
+                      {{ object }}
+                      &nbsp;
+                      {% if svg %}
+                      {% for i in svg %}
+                        <a {% if i.1 %} href="{% url i.1 pk=object.id %}" {% endif %} {{i.2}} data-mdb-target=#{{object.subject}} >
+                          <img src="{% static i.0 %}" alt="">
+                        </a>
+                        &nbsp;
+                        <div class="modal fade" id={{object.subject}} tabindex="-1" aria-labelledby={{object.subject}}Label aria-hidden="true">
+                          <form method="post" action="{% url 'del_topic' pk=object.id %}">
+                            {% csrf_token %}
+                          <div class="modal-dialog">
+                            <div class="modal-content">
+                              <div class="modal-header">
+                                <h5 class="modal-title" id="exampleModalLabel">Confirm Delete</h5>
+                                <button type="button" class="btn-close" data-mdb-ripple-init data-mdb-dismiss="modal" aria-label="Close"></button>
+                              </div>
+                              <div class="modal-body">Sure to delete the topic "{{object}}" this will also delete all the questions in the topic</div>
+                              <div class="modal-footer">
+                                <button type="submit" class="btn btn-danger elem-big" style="width: 48%;">Delete</button>
+                                <button type="button" class="btn btn-secondary elem-big" style="width: 48%;" data-mdb-ripple-init data-mdb-dismiss="modal">Close</button>
+                                <button type="submit" class="btn btn-danger elem-small" style="width: 100%;">Delete</button>
+                                <button type="button" class="btn btn-secondary elem-small" style="width: 100%;" data-mdb-ripple-init data-mdb-dismiss="modal">Close</button>
+                              </div>
+                            </div>
+                          </div>
+                          </form>
+                        </div>
+                      {% endfor %}                      
+                      {% endif %}
+                    </td>
+                    <td class="text-end">
+                      <a href="{% url link pk=object.id %}">{{object.num_questions.count}}{{object.num_solutions.count}}</a>
+                    </td>
+                  </tr>
+                  
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% if addr %}
+          <div class="d-flex justify-content-center">
+            <a href="{% url addr %}" class="btn btn-success elem-big" style="width: 200px;" type="submit">Add</a>
+            <a href="{% url addr %}" class="btn btn-success elem-small w-100" type="submit">Add</a>
+        </div>
+          {% endif %}
+        </div>
+        <!-- Modal -->
+        
+      {% endblock %}
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/7.1.0/mdb.umd.min.js"></script>
+  </body>
+</html>
