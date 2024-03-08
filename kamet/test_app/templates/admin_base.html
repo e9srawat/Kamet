@@ -16,23 +16,31 @@
           .elem-big {
               display: none;
           }
-
-          .elem-small-flex {
-              display: flex;
-          }
-
       }
 
       @media (min-width: 769px) {
           .elem-small {
               display: none;
           }
+      }
 
-          .elem-small-flex {
-              display: none;
-          }
+      @media (min-width: 1200px) {
+        body {
+          background-image: url('{% static "image.jpg" %}');
+          background-size: cover;
+          background-repeat: no-repeat;
+        }
+      }
+      
+      @media (max-width: 1200px) {
+        body {
+          background-image: url('{% static "image.jpg" %}');
+          background-size: fill;
+          background-repeat: no-repeat;
+        }
       }
   </style>
+ 
   </head>
   <body>
     <div class="h-100 w-100" style="background-color: #7952b3;">
@@ -55,6 +63,7 @@
               <li class="nav-item">
                 <a class="nav-link {{ status }}" href="{% url 'topics' %}">Topics</a>
               </li>
+              &nbsp;&nbsp;
               <li class="nav-item">
                 <a class="btn btn-danger" href="#">Logout</a>
               </li>
@@ -67,7 +76,19 @@
     <div class="container mt-4">
       {% block content %}
         <div class="card p-5 mb-4">
-          <h1>{{ title }}</h1>
+          <div class="d-flex justify-content-between align-items-center">
+          <h1 class="elem-big">{{ title }}</h1>
+          <h5 class="elem-small">{{ title }}</h5>
+          {% if addr %}
+          {% if self %}
+            <a href="{% url addr.0 pk=self.id %}" class="btn btn-success elem-big" style="width: 150px;">{{ addr.1 }}</a>
+            <a href="{% url addr.0 pk=self.id %}" class="btn btn-success elem-small w-100">+</a>
+          {% else %}
+            <a href="{% url addr.0 %}" class="btn btn-success elem-big" style="width: 150px;">{{ addr.1 }}</a>
+            <a href="{% url addr.0 %}" class="btn btn-success elem-small" style="width: 100px;">+</a>
+          {% endif %}
+        {% endif %}
+      </div>  
           <div class="table-responsive">
             <table class="{{table}}">
               <thead>
@@ -78,19 +99,20 @@
                 </tr>
               </thead>
               <tbody>
-                {% for object in object_list %}
+                {% for object in olist %}
                   <tr>
                     <td>
-                      {{ object }}
+                      {{ object.user }}{{ object.subject }}{{ object.0 }}
                       &nbsp;
+                      <br class="elem-small">
                       {% if svg %}
                       {% for i in svg %}
-                        <a {% if i.1 %} href="{% url i.1 pk=object.id %}" {% endif %} {{i.2}} data-mdb-target=#{{object.subject}} >
+                        <a {% if i.1 %} href="{% url i.1 pk=object.id %}" {% endif %} {{i.2}} data-mdb-target=#{{object.slug}} >
                           <img src="{% static i.0 %}" alt="">
                         </a>
                         &nbsp;
-                        <div class="modal fade" id={{object.subject}} tabindex="-1" aria-labelledby={{object.subject}}Label aria-hidden="true">
-                          <form method="post" action="{% url 'del_topic' pk=object.id %}">
+                        <div class="modal fade" id={{object.slug}} tabindex="-1" aria-labelledby={{object.slug}}Label aria-hidden="true">
+                          <form method="post" action="{% url delete pk=object.id %}">
                             {% csrf_token %}
                           <div class="modal-dialog">
                             <div class="modal-content">
@@ -98,7 +120,7 @@
                                 <h5 class="modal-title" id="exampleModalLabel">Confirm Delete</h5>
                                 <button type="button" class="btn-close" data-mdb-ripple-init data-mdb-dismiss="modal" aria-label="Close"></button>
                               </div>
-                              <div class="modal-body">Sure to delete the topic "{{object}}" this will also delete all the questions in the topic</div>
+                              <div class="modal-body">Are you sure you want to delete this item? This action cannot be undone</div>
                               <div class="modal-footer">
                                 <button type="submit" class="btn btn-danger elem-big" style="width: 48%;">Delete</button>
                                 <button type="button" class="btn btn-secondary elem-big" style="width: 48%;" data-mdb-ripple-init data-mdb-dismiss="modal">Close</button>
@@ -112,24 +134,21 @@
                       {% endfor %}                      
                       {% endif %}
                     </td>
+                    {% if object.0 %}
+                    <td class="text-end">
+                      <a href="{% url link user=tuser.id topic=object.0.id %}">{{ object.1 }}</a>
+                    </td>
+                    {% else %}
                     <td class="text-end">
                       <a href="{% url link pk=object.id %}">{{object.num_questions.count}}{{object.num_solutions.count}}</a>
                     </td>
-                  </tr>
-                  
+                  {% endif %}
+                </tr>
                 {% endfor %}
               </tbody>
             </table>
-          </div>
-          {% if addr %}
-          <div class="d-flex justify-content-center">
-            <a href="{% url addr %}" class="btn btn-success elem-big" style="width: 200px;" type="submit">Add</a>
-            <a href="{% url addr %}" class="btn btn-success elem-small w-100" type="submit">Add</a>
         </div>
-          {% endif %}
-        </div>
-        <!-- Modal -->
-        
+      </div>        
       {% endblock %}
     </div>
 

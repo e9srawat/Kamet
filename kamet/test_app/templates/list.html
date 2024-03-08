@@ -1,33 +1,100 @@
 {% extends 'admin_base.html' %}
+{% load static %}
+
 
 {% block content %}
-  <div class="card" style="background-color: whitesmoke; min-height: 75vh; min-width: 100%;">
-    <div class="card-header d-flex justify-content-between" style="background-color: darkgray;">
-      <h4 class="elem-big">{{ title }} {{ testuser }}{{ topics.subject }}</h4>
-      <h5 class="elem-small">{{ title }} {{ testuser }}{{ topics.subject }}</h5>
+<style>
+  .option{
+    background-color:#4e4e4f;
+    color: white; 
+    padding-left: 10px; 
+    padding-right: 10px; 
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+  }
+</style>
+  <div class="card mb-5" style="background-color: whitesmoke; min-height: 75vh; min-width: 100%;">
+    <div class="card-header d-flex justify-content-between align-items-center" style="background-color: darkgray;">
+      <h4 class="elem-big">{{ title }} {{ testuser }}{{ self.subject }}</h4>
+      <h5 class="elem-small">{{ title }} {{ testuser }}{{ self.subject }}</h5>
+      {% if addr %}
+      <div class="d-flex mt-3 mb-3 justify-content-center">
+        <a href="{% url addr.0 pk=self.id %}" class="btn btn-success elem-big" style="width: 150px;">{{ addr.1 }}</a>
+        <a href="{% url addr.0 pk=self.id %}" class="btn btn-success elem-small" style="width: 100px;">+</a>
+      </div>
+    {% endif %}
     </div>
 
     <div class="card-body">
-        <ul>
-            {% for object in object_list %}
-            <li>
-               <h6>{{object.question_text}}</h6>
-               <div class="p-1 pt-3 pb-3" style="background-color: lightgray; border-radius: 15px;">
-               <ul>
-                <li>{{object.option_a}}</li>
-                <li>{{object.option_b}}</li>
-                <li>{{object.option_c}}</li>
-                <li>{{object.option_d}}</li>
-               </ul>
+      <ul>
+        {% for object in object_list %}
+        <style>
+          #{{object.solution}}{{forloop.counter}}{
+            background-color: lightcoral;
+            border-radius: 10px;
+            justify-content: space-between;
+          }
+          #{{object.question.option_correct}}{{forloop.counter}}{
+            background-color: lightgreen;
+            border-radius: 10px;
+
+          }
+        </style>
+          <li>
+          <div class="mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <h6 class="d-inline">{{ object.question_text }}{{ object.question.question_text }}:</h6>
+              <div>
+                {% for i in svg %}
+                  <a {% if i.1 %} href="{% url i.1 pk=object.id %}" {% endif %} {{i.2}} data-mdb-target=#{{object.slug}} >
+                    <img src="{% static i.0 %}" alt="">
+                  </a>
+                  &nbsp;
+                  <div class="modal fade" id={{object.slug}} tabindex="-1" aria-labelledby={{object.slug}}Label aria-hidden="true">
+                    <form method="post" action="{% url delete pk=object.id %}">
+                      {% csrf_token %}
+                    <div class="modal-dialog">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <h5 class="modal-title" id="exampleModalLabel">Confirm Delete</h5>
+                          <button type="button" class="btn-close" data-mdb-ripple-init data-mdb-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">Are you sure you want to delete this item? This action cannot be undone</div>
+                        <div class="modal-footer">
+                          <button type="submit" class="btn btn-danger elem-big" style="width: 48%;">Delete</button>
+                          <button type="button" class="btn btn-secondary elem-big" style="width: 48%;" data-mdb-ripple-init data-mdb-dismiss="modal">Close</button>
+                          <button type="submit" class="btn btn-danger elem-small" style="width: 100%;">Delete</button>
+                          <button type="button" class="btn btn-secondary elem-small" style="width: 100%;" data-mdb-ripple-init data-mdb-dismiss="modal">Close</button>
+                        </div>
+                      </div>
+                    </div>
+                    </form>
+                  </div>
+                {% endfor %}
+              </div>
+              {% if object.solution %}
+                {% if object.solution == object.question.option_correct %}
+                  <div class="card p-2" style="background-color: lightgreen;">Correct</div>
+                {% else %}
+                  <div class="card p-2" style="background-color: lightcoral;">Incorrect</div>
+                {% endif %}
+              {% endif %}
             </div>
-            </li>
-            <br>
-            {% endfor %}
-        </ul>
+            <div class="p-1 pt-3 pb-3" style="background-color: lightgray; border-radius: 15px;">
+              <ol style="list-style-type: upper-alpha;">
+                <li id="A{{ forloop.counter }}" style="padding-right: 5px; padding-top: 7px; padding-bottom: 7px; margin-bottom: 7px; margin-right: 32px;" ><div class="container-fluid d-flex justify-content-between">{{ object.option_a }}{{ object.question.option_a }}{% if object.solution == "A"%}<i class="option">User's solution</i>{% elif object.question.option_correct == "A" %}<i class="option">Correct solution</i>{% endif %}</div></li>
+                <li id="B{{ forloop.counter }}" style="padding-right: 5px; padding-top: 7px; padding-bottom: 7px; margin-bottom: 7px; margin-right: 32px;" ><div class="container-fluid d-flex justify-content-between">{{ object.option_b }}{{ object.question.option_b }}{% if object.solution == "B"%}<i class="option">User's solution</i>{% elif object.question.option_correct == "B" %}<i class="option">Correct solution</i>{% endif %}</div></li>
+                <li id="C{{ forloop.counter }}" style="padding-right: 5px; padding-top: 7px; padding-bottom: 7px; margin-bottom: 7px; margin-right: 32px;" ><div class="container-fluid d-flex justify-content-between">{{ object.option_c }}{{ object.question.option_c }}{% if object.solution == "C"%}<i class="option">User's solution</i>{% elif object.question.option_correct == "C" %}<i class="option">Correct solution</i>{% endif %}</div></li>
+                <li id="D{{ forloop.counter }}" style="padding-right: 5px; padding-top: 7px; padding-bottom: 7px; margin-bottom: 7px; margin-right: 32px;" ><div class="container-fluid d-flex justify-content-between">{{ object.option_d }}{{ object.question.option_d }}{% if object.solution == "D"%}<i class="option">User's solution</i>{% elif object.question.option_correct == "D" %}<i class="option">Correct solution</i>{% endif %}</div></li>
+              </ol>
+
+            </div>
+          </div>
+          </li>
+        {% endfor %}
+      </ul>
     </div>
   </div>
-  <div class="d-flex mt-3 justify-content-center">
-    <a href="{% url addr pk=topics.id %}" class="btn btn-success elem-big" style="width: 200px;" type="submit">Add</a>
-    <a href="{% url addr pk=topics.id %}" class="btn btn-success elem-small w-100" type="submit">Add</a>
-</div>
+
 {% endblock %}

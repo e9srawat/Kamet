@@ -5,6 +5,7 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.contrib.auth.hashers import make_password
+from django.utils.text import slugify 
 
 
 # Create your models here.
@@ -13,6 +14,11 @@ class TestUser(models.Model):
     User=get_user_model()
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="test_user")
     attempts = models.IntegerField(default=1)
+    slug = models.SlugField(unique=True)
+    
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.user.username)
+        super(TestUser, self).save(*args, **kwargs)
     
 
     def delete(self, using=None, keep_parents=False):
@@ -63,6 +69,11 @@ class Topics(models.Model):
     subject = models.CharField(max_length=20)
     time_allotted = models.IntegerField(default=60)
     number_questions = models.IntegerField(default=10)
+    slug = models.SlugField(unique=True)
+    
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.subject)
+        super(Topics, self).save(*args, **kwargs)
 
     def random_question(self, testuser):
         """get number_questions number of questions for the topics"""
@@ -76,6 +87,9 @@ class Topics(models.Model):
     
     def num_questions(self):
         return self.qtopics
+    
+    def solutions(self,user):
+        return UserSolution.objects.filter(test_user=user, question__topics=self)
         
     def __str__(self):
         return str(self.subject)
@@ -86,17 +100,22 @@ class Question(models.Model):
 
     topics = models.ForeignKey(Topics, on_delete=models.CASCADE, related_name="qtopics")
     question_text = models.TextField()
-    option_a = models.CharField(max_length=100)
-    option_b = models.CharField(max_length=100)
-    option_c = models.CharField(max_length=100)
-    option_d = models.CharField(max_length=100)
+    option_a = models.CharField(max_length=1000)
+    option_b = models.CharField(max_length=1000)
+    option_c = models.CharField(max_length=1000)
+    option_d = models.CharField(max_length=1000)
     options = [
-        ("a", "A"),
-        ("b", "B"),
-        ("c", "C"),
-        ("d", "D"),
+        ("A", "A"),
+        ("B", "B"),
+        ("C", "C"),
+        ("D", "D"),
     ]
     option_correct = models.CharField(max_length=1, choices=options)
+    slug = models.SlugField(unique=True, max_length=6)
+    
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.question_text)
+        super(Question, self).save(*args, **kwargs)
 
     
     def __str__(self):
@@ -112,10 +131,10 @@ class UserSolution(models.Model):
         Question, on_delete=models.CASCADE, related_name="uquestion"
     )
     CHECK_CHOICES = [
-        ("a", "A"),
-        ("b", "B"),
-        ("c", "C"),
-        ("d", "D"),
+        ("A", "A"),
+        ("B", "B"),
+        ("C", "C"),
+        ("D", "D"),
     ]
     solution = models.CharField(max_length=1, choices=CHECK_CHOICES)
 

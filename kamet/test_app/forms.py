@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 class TopicForm(forms.ModelForm):
     class Meta:
         model = models.Topics
-        fields = "__all__"
+        fields = ['subject','time_allotted','number_questions']
         widgets = {
             "subject": forms.TextInput(
                 attrs={
