@@ -1,1 +1,157 @@
-<div style="background-color: red; padding: 3px;"> nigga </div>
+{% extends 'base.html' %}
+{% load static %}
+
+
+{% block content %}
+<style>
+  .option{
+    background-color:#4e4e4f;
+    color: white; 
+    padding-left: 10px; 
+    padding-right: 10px; 
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+  }
+</style>
+  <div class="card mb-5" style="background-color: whitesmoke; min-height: 75vh; min-width: 100%;">
+    <div class="card-header d-flex justify-content-between align-items-center" style="background-color: darkgray;">
+      <h4 class="elem-big">{{ title }} {{ testuser }}{{ self.subject }}</h4>
+      <h5 class="elem-small">{{ title }} {{ testuser }}{{ self.subject }}</h5>
+      {% if add %}
+      <div class="d-flex mt-3 mb-3 justify-content-center">
+        <a href="{% url add.0 pk=self.id %}" class="btn btn-success elem-big" style="width: 150px;">{{ add.1 }}</a>
+        <a href="{% url add.0 pk=self.id %}" class="btn btn-success elem-small" style="width: 100px;">+</a>
+      </div>
+    {% endif %}
+    </div>
+
+    <div class="card-body">
+      <form action="" method="post">
+        {% csrf_token %}
+      <ul>
+        {% for object in olist %}
+        <style>
+          #{{object.solution}}{{forloop.counter}}{
+            background-color: lightcoral;
+            border-radius: 10px;
+            justify-content: space-between;
+          }
+          #{{object.question.option_correct}}{{forloop.counter}}{
+            background-color: lightgreen;
+            border-radius: 10px;
+
+          }
+        </style>
+          <li>
+          <div class="mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <h6 class="d-inline">{{ object.question_text }}{{ object.question.question_text }}</h6>
+              <div>
+                {% for i in svg %}
+                  <a {% if i.link %} href="{% url i.link pk=object.id %}" {% endif %} {{i.params}} data-mdb-target=#{{object.slug}} >
+                    <img src="{% static i.image %}" alt="">
+                  </a>
+                  &nbsp;
+                  {% if i.delete %}
+                  <div class="modal fade" id={{object.slug}} tabindex="-1" aria-labelledby={{object.slug}}Label aria-hidden="true">
+                    <form method="post" action="{% url i.delete pk=object.id %}">
+                      {% csrf_token %}
+                    <div class="modal-dialog">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <h5 class="modal-title" id="exampleModalLabel">Confirm Delete</h5>
+                          <button type="button" class="btn-close" data-mdb-ripple-init data-mdb-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">Are you sure you want to delete this item? This action cannot be undone</div>
+                        <div class="modal-footer">
+                          <button type="submit" class="btn btn-danger elem-big" style="width: 48%;">Delete</button>
+                          <button type="button" class="btn btn-secondary elem-big" style="width: 48%;" data-mdb-ripple-init data-mdb-dismiss="modal">Close</button>
+                          <button type="submit" class="btn btn-danger elem-small" style="width: 100%;">Delete</button>
+                          <button type="button" class="btn btn-secondary elem-small" style="width: 100%;" data-mdb-ripple-init data-mdb-dismiss="modal">Close</button>
+                        </div>
+                      </div>
+                    </div>
+                    </form>
+                  </div>
+                  {% endif %}
+                {% endfor %}
+              </div>
+              {% if object.solution %}
+                {% if object.solution == object.question.option_correct %}
+                  <div class="card p-2" style="background-color: lightgreen;">Correct</div>
+                {% else %}
+                  <div class="card p-2" style="background-color: lightcoral;">Incorrect</div>
+                {% endif %}
+              {% endif %}
+            </div>
+            <div class="p-1 pt-3 pb-3" style="background-color: lightgray; border-radius: 15px;">
+              <ol style="list-style-type: upper-alpha;">
+                
+                <li id="A{{ forloop.counter }}" style="padding-right: 5px; padding-top: 7px; padding-bottom: 7px; margin-bottom: 7px; margin-right: 32px;" >
+                    <div class="container-fluid d-flex justify-content-between">
+                        <div>
+                            <input class="form-check-input" type="radio" id="optiona{{ forloop.counter }}" name="{{ object.id }}" value="A">
+                            {{ object.option_a }}{{ object.question.option_a }}
+                        </div>
+                        {% if object.solution == "A"%}
+                            <i class="option">User's solution</i>
+                        {% elif object.question.option_correct == "A" %}
+                            <i class="option">Correct solution</i>
+                        {% endif %}
+                    </div>
+                </li>
+                <li id="B{{ forloop.counter }}" style="padding-right: 5px; padding-top: 7px; padding-bottom: 7px; margin-bottom: 7px; margin-right: 32px;" >
+                    <div class="container-fluid d-flex justify-content-between">
+                        <div>
+                            <input class="form-check-input" type="radio" id="optionb{{ forloop.counter }}" name="{{ object.id }}" value="B">
+                            {{ object.option_b }}{{ object.question.option_b }}
+                        </div>
+                        {% if object.solution == "B"%}
+                            <i class="option">User's solution</i>
+                        {% elif object.question.option_correct == "B" %}
+                            <i class="option">Correct solution</i>
+                        {% endif %}
+                    </div>
+                </li>
+                <li id="C{{ forloop.counter }}" style="padding-right: 5px; padding-top: 7px; padding-bottom: 7px; margin-bottom: 7px; margin-right: 32px;">
+                    <div class="container-fluid d-flex justify-content-between">
+                        <div>
+                            <input class="form-check-input" type="radio" id="optionc{{ forloop.counter }}" name="{{ object.id }}" value="C">
+                            {{ object.option_c }}{{ object.question.option_c }}
+                        </div>
+                        {% if object.solution == "C"%}
+                            <i class="option">User's solution</i>
+                        {% elif object.question.option_correct == "C" %}
+                            <i class="option">Correct solution</i>
+                        {% endif %}
+                    </div>
+                </li>
+                <li id="D{{ forloop.counter }}" style="padding-right: 5px; padding-top: 7px; padding-bottom: 7px; margin-bottom: 7px; margin-right: 32px;">
+                    <div class="container-fluid d-flex justify-content-between">
+                        <div>
+                            <input class="form-check-input" type="radio" id="optiond{{ forloop.counter }}" name="{{ object.id }}" value="D">
+                            {{ object.option_d }}{{ object.question.option_d }}
+                        </div>
+                        {% if object.solution == "D"%}
+                            <i class="option">User's solution</i>
+                        {% elif object.question.option_correct == "D" %}
+                            <i class="option">Correct solution</i>
+                        {% endif %}
+                    </div>
+                </li>
+              </ol>
+            </div>
+          </div>
+          </li>
+        {% endfor %}
+      </ul>
+      <div class="d-flex justify-content-center mb-3">
+        <button class="btn btn-primary" type="submit">submit</button>
+    </div>
+    </form>
+    </div>
+
+  </div>
+
+{% endblock %}

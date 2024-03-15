@@ -3,7 +3,8 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path("", views.AdminPanel.as_view(), name="index"),
+    path("", views.AdminHome.as_view(), name="index"),
+    path("users", views.UserSubmissions.as_view(), name="users"),
     path("topics", views.Topics.as_view(), name="topics"),
     path("add_topic", views.AddTopic.as_view(), name="add_topic"),
     path("del_topic/<int:pk>/", views.DelTopic.as_view(), name="del_topic"),
@@ -22,5 +23,15 @@ urlpatterns = [
     path("topic_solutions/<int:user>/<int:topic>/", views.TopicSolutions.as_view(), name="topic_solutions"),
 
     path("dashboard", views.UserDash.as_view(), name="dashboard"),
+    path("rules/<int:pk>/", views.Rules.as_view(), name="rules"),
+    path("test", views.Test.as_view(), name="test"),
+    
+    
+    path("api/users", views.TuserListView.as_view()),
+    path("api/users/<int:pk>", views.TuserDetailView.as_view()),
+    path("api/topics", views.TopicsListView.as_view()),
+    path("api/topics/<slug:slug>", views.TopicsDetailView.as_view()),
+    path("api/<slug:slug>/questions", views.QuestionsListView.as_view()),
+    path("api/<slug:slug>/questions/<int:quesno>", views.QuestionsDetailView.as_view()),
 
 ]

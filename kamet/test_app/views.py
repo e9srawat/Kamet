@@ -1,7 +1,7 @@
 from django.db.models.query import QuerySet
 from django.forms import BaseModelForm
 from django.http import HttpResponseRedirect, HttpResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.views.generic import (
     ListView,
@@ -14,23 +14,33 @@ from django.views.generic import (
 )
 from . import models
 from . import forms
+from rest_framework import generics
+from . import serializers
+
 
 # Create your views here.
-class AdminPanel(ListView):
+class AdminHome(TemplateView):
+    template_name = 'base.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["bg"] = "background-image: url('/static/back.jpg');"
+        return context
+    
+
+class UserSubmissions(ListView):
     template_name = "admin_base.html"
     model = models.TestUser
     context_object_name = 'olist'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        print(context)
         context['title'] = 'Users & Submissions'
-        context['table'] = 'table table-striped'
-        context['header'] = [('Users','pass'),('Questions Attempted', 'text-end')]
-        context['svg'] = [('svgs/sliders.svg','edit_user'),('svgs/trash-fill.svg','','data-mdb-ripple-init data-mdb-modal-init')]
-        context['delete'] = 'del_user'
+        context['status_user'] = 'active'
+        context['header'] = [('Users','pass'),('Questions Attempted', 'text-end'),('Score', 'text-end'),('Attempts left', 'text-end')]
+        context['svg'] = [{'image':'svgs/sliders.svg','link':'edit_user', 'params':'', 'delete':''},{'image':'svgs/trash-fill.svg','link':'', 'params':'data-mdb-ripple-init data-mdb-modal-init', 'delete':'del_user'}]
         context['link'] = 'solutions'
-        context['addr'] = ('add_user', "Add User")
+        context['add'] = ('add_user', "Add User")
         return context
     
 class Topics(ListView):
@@ -40,14 +50,13 @@ class Topics(ListView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['status'] = 'active'
+        context['status_topic'] = 'active'
         context['title'] = 'All Topics'
-        context['table'] = 'table table-striped table-bordered'
         context['header'] = [('Topic','pass'),('Number of questions', 'text-end')]
-        context['svg'] = [('svgs/pencil-square.svg',"edit_topic",''),('svgs/trash-fill.svg','','data-mdb-ripple-init data-mdb-modal-init')]
-        context['delete'] = 'del_topic'
+        context['svg'] =  [{'image':'svgs/sliders.svg','link':'edit_topic', 'params':'', 'delete':''},{'image':'svgs/trash-fill.svg','link':'', 'params':'data-mdb-ripple-init data-mdb-modal-init', 'delete':'del_topic'}]
         context['link'] = 'questions'
-        context['addr'] = ('add_topic',"Add Topic")
+        context['td_classes'] = {'third':'d-none','fourth':'d-none'}
+        context['add'] = ('add_topic',"Add Topic")
         return context
 
 class AddTopic(CreateView):
@@ -57,7 +66,7 @@ class AddTopic(CreateView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['status'] = 'active'
+        context['status_topic'] = 'active'
         context['title'] = 'Add a new Topic'
         return context
     
@@ -74,7 +83,7 @@ class UpdateTopic(UpdateView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['status'] = 'active'
+        context['status_topic'] = 'active'
         context['title'] = 'Edit Topic'
         return context
 
@@ -91,6 +100,7 @@ class AddUser(CreateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['status_user'] = 'active'
         context['title'] = 'Add a new User'
         return context
     
@@ -102,6 +112,7 @@ class UpdateUser(UpdateView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['status_user'] = 'active'
         context['title'] = 'Edit User'
         return context
     
@@ -114,6 +125,7 @@ class DeleteUser(DeleteView):
 class TopicQuestions(ListView):
     template_name = "list.html"
     model = models.Question
+    context_object_name = 'olist'
     
     def get_queryset(self):
         return self.model.objects.filter(topics=self.kwargs['pk'])
@@ -122,9 +134,8 @@ class TopicQuestions(ListView):
         context = super().get_context_data(**kwargs)
         context['title'] = 'All Questions for'
         context['self'] = models.Topics.objects.get(id=self.kwargs['pk'])
-        context['svg'] = [('svgs/pencil-square.svg',"edit_ques",''),('svgs/trash-fill.svg','','data-mdb-ripple-init data-mdb-modal-init')]
-        context['addr'] = ('add_question', 'Add Question')
-        context['delete'] = 'del_ques'
+        context['svg'] = [{'image':'svgs/pencil-square.svg','link':"edit_ques", 'params':'', 'delete':''},{'image':'svgs/trash-fill.svg','link':'', 'params':'data-mdb-ripple-init data-mdb-modal-init', 'delete':'del_ques'}]
+        context['add'] = ('add_question', 'Add Question')
         return context
     
 class AddQuestion(CreateView):
@@ -132,7 +143,6 @@ class AddQuestion(CreateView):
     form_class = forms.QuestionForm
     
     def form_valid(self, form: BaseModelForm):
-        print(self.kwargs['pk'])
         form.instance.topics = models.Topics.objects.get(id=self.kwargs['pk'])
         return super().form_valid(form)
     
@@ -142,7 +152,7 @@ class AddQuestion(CreateView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['status'] = 'active'
+        context['status_topic'] = 'active'
         context['title'] = 'Add a new Question for'
         context['topics'] = models.Topics.objects.get(id=self.kwargs['pk']).subject
         return context
@@ -162,40 +172,121 @@ class UpdateQuestion(UpdateView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['status'] = 'active'
+        context['status_topic'] = 'active'
         context['title'] = 'Edit Question'
         return context
     
 class UserSolutionsView(ListView):
     template_name = "admin_base.html"
     model = models.Topics
-    context_object_name = 'olist'
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['tuser']= models.TestUser.objects.get(id=self.kwargs['pk'])
+        context['status_user'] = 'active'
         context['title'] = 'Solutions for '+str(context['tuser'])
-        context['table'] = 'table table-striped table-bordered'
-        context['header'] = [('Topic','pass'),('Questions Attempted', 'text-end')]
-        context['olist'] = [(i,len(i.solutions(context['tuser']))) for i in context['object_list']]
+        context['header'] = [('Topic','pass'),('Questions Attempted', 'text-end'),('Score', 'text-end')]
+        context['olist'] = [{'subject':i,'num_solutions':i.solutions(context['tuser']),'score':i.score(context['tuser']),'links':2} for i in context['object_list']]
         context['link'] = 'topic_solutions' 
+        context['td_classes'] = {'fourth':'d-none'}
         return context
     
 class TopicSolutions(ListView):
     template_name = 'list.html'
     model = models.UserSolution
+    context_object_name = 'olist'
     
     def get_queryset(self):
         return self.model.objects.filter(test_user=self.kwargs['user'],question__topics = self.kwargs['topic'])
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['title'] = f'Solutions submitted by {models.TestUser.objects.get(id=self.kwargs["user"])} for {models.Topics.objects.get(id=self.kwargs["topic"])}'
-        print(context)
+        context['status_user'] = 'active'
+        context['title'] = f'{models.TestUser.objects.get(id=self.kwargs["user"])}\'s Submitted Solutions for {models.Topics.objects.get(id=self.kwargs["topic"])}'
         return context
     
-class UserDash(TemplateView):
+class UserDash(ListView):
     """
     User's Dashboard
     """
     template_name = 'card.html'
+    model = models.Topics
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["bg"] = "background-image: url('/static/output.png');"
+        context["status_user"] = 'd-none'
+        context["status_topic"] = 'd-none'
+        return context
+    
+    
+class Rules(TemplateView):
+    template_name = 'rules.html'
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        context["topic"] = models.Topics.objects.get(id=self.kwargs["pk"])
+        context["tuser"] = models.TestUser.objects.all()[1]
+        context["status_user"] = 'd-none'
+        context["status_topic"] = 'd-none'
+        return context
+    
+class Test(TemplateView):
+    template_name = 'temp.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        t = models.Topics.objects.all()[2]
+        tu = models.TestUser.objects.all()[1]
+        context["olist"] = t.random_question(tu)
+        context["title"] = "Start test"
+        return context
+    
+    def post(self, request, *args, **kwargs):
+            tu = models.TestUser.objects.all()[1]
+            us = list(request.POST.items())[1:]
+            for i in us:
+                question = models.Question.objects.get(id=i[0])
+                models.UserSolution(test_user=tu, question=question, solution=i[1]).save()
+            return redirect('users')
+
+
+### API ###
+class TuserListView(generics.ListCreateAPIView):
+    queryset = models.TestUser.objects.all()
+    serializer_class = serializers.TestUserSerializer
+    
+class TuserDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = models.TestUser.objects.all()
+    serializer_class = serializers.TestUserSerializer
+    
+class TopicsListView(generics.ListCreateAPIView):
+    queryset = models.Topics.objects.all()
+    serializer_class = serializers.TopicSerializer
+    
+class TopicsDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = models.Topics.objects.all()
+    serializer_class = serializers.TopicSerializer
+    lookup_field = 'slug'
+
+class QuestionsListView(generics.ListCreateAPIView):
+    serializer_class = serializers.QuestionSerializer
+    
+    def get_queryset(self):
+        topic = models.Topics.objects.get(slug=self.kwargs['slug'])
+        return models.Question.objects.filter(topics=topic)
+    
+    def perform_create(self, serializer):
+        topic = models.Topics.objects.get(slug=self.kwargs['slug'])
+        serializer.validated_data['topics'] = topic
+        serializer.save()
+    
+class QuestionsDetailView(generics.RetrieveUpdateDestroyAPIView):
+    #queryset = models.Question.objects.all()
+    serializer_class = serializers.QuestionSerializer
+    lookup_field = 'quesno'
+    
+    def get_queryset(self):
+        topic = models.Topics.objects.get(slug=self.kwargs['slug'])
+        return models.Question.objects.filter(topics=topic)
+    

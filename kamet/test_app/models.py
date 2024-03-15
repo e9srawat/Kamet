@@ -19,7 +19,6 @@ class TestUser(models.Model):
     def save(self, *args, **kwargs):
         self.slug = slugify(self.user.username)
         super(TestUser, self).save(*args, **kwargs)
-    
 
     def delete(self, using=None, keep_parents=False):
         """Deletes the User and the testuser"""
@@ -42,7 +41,15 @@ class TestUser(models.Model):
     
     def num_solutions(self):
         return self.user_solution.all()
-        
+    
+    def score(self):
+        sols = self.num_solutions()
+        correct = 0
+        for i in sols:
+            if i.solution == i.question.option_correct:
+                correct+=1
+        return f"{correct}/{len(sols)}"
+                
     def random_data(self):
         ulst = []
         tlst = []
@@ -91,6 +98,14 @@ class Topics(models.Model):
     def solutions(self,user):
         return UserSolution.objects.filter(test_user=user, question__topics=self)
         
+    def score(self,user):
+        sols = self.solutions(user)
+        correct = 0
+        for i in sols:
+            if i.solution == i.question.option_correct:
+                correct+=1
+        return f"{correct}/{len(sols)}"
+        
     def __str__(self):
         return str(self.subject)
 
@@ -112,9 +127,13 @@ class Question(models.Model):
     ]
     option_correct = models.CharField(max_length=1, choices=options)
     slug = models.SlugField(unique=True, max_length=6)
+    quesno = models.CharField(max_length=50)
+    
     
     def save(self, *args, **kwargs):
-        self.slug = slugify(self.question_text)
+        if not self.quesno:
+            self.quesno = Question.objects.filter(topics=self.topics).count()+1
+        self.slug = slugify(f'ques-{self.quesno}')
         super(Question, self).save(*args, **kwargs)
 
     
@@ -139,4 +158,4 @@ class UserSolution(models.Model):
     solution = models.CharField(max_length=1, choices=CHECK_CHOICES)
 
     def __str__(self):
-        return str(self.solution)
+        return f"{self.test_user}'s solution for {self.question}"

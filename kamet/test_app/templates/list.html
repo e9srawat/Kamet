@@ -1,4 +1,4 @@
-{% extends 'admin_base.html' %}
+{% extends 'base.html' %}
 {% load static %}
 
 
@@ -15,20 +15,23 @@
   }
 </style>
   <div class="card mb-5" style="background-color: whitesmoke; min-height: 75vh; min-width: 100%;">
+
     <div class="card-header d-flex justify-content-between align-items-center" style="background-color: darkgray;">
       <h4 class="elem-big">{{ title }} {{ testuser }}{{ self.subject }}</h4>
       <h5 class="elem-small">{{ title }} {{ testuser }}{{ self.subject }}</h5>
-      {% if addr %}
+      {% if add %}
       <div class="d-flex mt-3 mb-3 justify-content-center">
-        <a href="{% url addr.0 pk=self.id %}" class="btn btn-success elem-big" style="width: 150px;">{{ addr.1 }}</a>
-        <a href="{% url addr.0 pk=self.id %}" class="btn btn-success elem-small" style="width: 100px;">+</a>
+        <a href="{% url add.0 pk=self.id %}" class="btn btn-success elem-big" style="width: 150px;">{{ add.1 }}</a>
+        <a href="{% url add.0 pk=self.id %}" class="btn btn-success elem-small" style="width: 100px;">+</a>
       </div>
     {% endif %}
     </div>
 
     <div class="card-body">
+      <form action="" method="post">
+        {% csrf_token %}
       <ul>
-        {% for object in object_list %}
+        {% for object in olist %}
         <style>
           #{{object.solution}}{{forloop.counter}}{
             background-color: lightcoral;
@@ -44,15 +47,16 @@
           <li>
           <div class="mb-5">
             <div class="d-flex justify-content-between align-items-center mb-2">
-              <h6 class="d-inline">{{ object.question_text }}{{ object.question.question_text }}:</h6>
+              <h6 class="d-inline">{{ object.question_text }}{{ object.question.question_text }}</h6>
               <div>
                 {% for i in svg %}
-                  <a {% if i.1 %} href="{% url i.1 pk=object.id %}" {% endif %} {{i.2}} data-mdb-target=#{{object.slug}} >
-                    <img src="{% static i.0 %}" alt="">
+                  <a {% if i.link %} href="{% url i.link pk=object.id %}" {% endif %} {{i.params}} data-mdb-target=#{{object.slug}} >
+                    <img src="{% static i.image %}" alt="">
                   </a>
                   &nbsp;
+                  {% if i.delete %}
                   <div class="modal fade" id={{object.slug}} tabindex="-1" aria-labelledby={{object.slug}}Label aria-hidden="true">
-                    <form method="post" action="{% url delete pk=object.id %}">
+                    <form method="post" action="{% url i.delete pk=object.id %}">
                       {% csrf_token %}
                     <div class="modal-dialog">
                       <div class="modal-content">
@@ -71,6 +75,7 @@
                     </div>
                     </form>
                   </div>
+                  {% endif %}
                 {% endfor %}
               </div>
               {% if object.solution %}
@@ -94,7 +99,10 @@
           </li>
         {% endfor %}
       </ul>
+    </form>
+
     </div>
+    
   </div>
 
 {% endblock %}

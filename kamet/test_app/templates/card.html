@@ -1,50 +1,31 @@
-{% extends 'admin_base.html' %}
+{% extends 'base.html' %}
+
+{% load static %}
 
 {% block content %}
-<div class="container text-center">
-    <div class="row row-cols-2 row-cols-lg-4 g-2 g-lg-3">
+<div class="d-flex  mb-3 justify-content-center">
+  <div class="card text-center p-3" style="width: 600px; background-image: url('{% static "school.jpg" %}'); background-size: contain;">
+    <h1>Welcome to Kamet</h1>
+  </div>  
+</div>
+  <div class="card p-5 mb-4" >
+    <h1 class="mb-4">Select Topic for test</h1>
+    <div class="row row-cols-1 row-cols-lg-3 text-center row-cols-sm-1 row-cols-md-2 g-2 g-lg-3">
+      {% for object in object_list %}
       <div class="col">
         <div class="card">
-            <div class="card-header"><h5>Python Test</h5></div>
-            <div class="card-body">
-              <h5 class="card-title">Test based on python</h5>
-              <div class="card-text">
-                <ul style="list-style-type: none;">
-                    <li>ooo</li>
-                    <li>iii</li>
-                </ul>
-              </div>
-              <a href="#" class="btn btn-primary" data-mdb-ripple-init>Go somewhere</a>
+            <div class="card-header" style="border-size:5px; background-color: gray; color: white;"><h5>{{ object }}</h5></div>
+            <div class="card-body" style="background-color: lightgray;">
+              <p class="mb-0">Questions: {{object.number_questions}}</p>
+              <p>Time alloted: {{object.time_allotted}}</p>
             </div>
+            <div class="card-footer" style="background-color: darkgray;">
+              <a href="{% url 'rules' pk=object.id %}" class="btn btn-success elem-big" data-mdb-ripple-init style="width: 200px;">Take Test</a>
+              <a href="{% url 'rules' pk=object.id %}" class="btn btn-success elem-small" data-mdb-ripple-init style="width: 100%;">Take Test</a>
+              </div>
           </div>
       </div>
-      <div class="col">
-        <div class="p-3">Row column 2</div>
-      </div>
-      <div class="col">
-        <div class="p-3">Row column 3</div>
-      </div>
-      <div class="col">
-        <div class="p-3">Row column 4</div>
-      </div>
-      <div class="col">
-        <div class="p-3">Row column 5</div>
-      </div>
-      <div class="col">
-        <div class="p-3">Row column 6</div>
-      </div>
-      <div class="col">
-        <div class="p-3">Row column 7</div>
-      </div>
-      <div class="col">
-        <div class="p-3">Row column 8</div>
-      </div>
-      <div class="col">
-        <div class="p-3">Row column 9</div>
-      </div>
-      <div class="col">
-        <div class="p-3">Row column 10</div>
-      </div>
+      {% endfor %}
     </div>
   </div>
 {% endblock %}
